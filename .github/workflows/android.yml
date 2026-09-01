@@ -23,8 +23,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    #https://github.com/actions/checkout
-    #https://github.com/actions/setup-java
     steps:
     - uses: actions/checkout@v6
       with:
@@ -43,8 +41,6 @@ jobs:
         echo ::add-mask::$INP_PASSWORD
         echo PASSWORD="$INP_PASSWORD" >> $GITHUB_ENV
 
-    # 在 CI 上现场生成一个一次性 keystore，并写出完整的 keystore.properties，
-    # 让 build.gradle 第 154 行的 file(keystoreProperties['storeFile']) 拿到真实文件
     - name: Create throwaway keystore
       run: |
         keytool -genkeypair -v \
@@ -64,28 +60,34 @@ jobs:
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
+
     - name: Check with Lint
       continue-on-error: true
-      run: ./gradlew lintGithubDebug lintLargeDebug
-    - name: Build with Gradle
-      run: ./gradlew assembleGithubDebug assembleLargeDebug
-    #https://docs.github.com/en/actions/security-guides/using-artifact-attestations-to-establish-provenance-for-builds
-    #https://github.com/actions/attest-build-provenance
+      run: ./gradlew --no-configuration-cache lintGithubDebug
+
+    - name: Build Github flavor
+      run: ./gradlew --no-configuration-cache assembleGithubDebug
+
+    - name: Build Large flavor
+      run: ./gradlew --no-configuration-cache assembleLargeDebug
+
     - name: Generate artifact attestation
       uses: actions/attest-build-provenance@v4
       with:
         subject-path: 'app/build/outputs/apk/**/debug/*.apk'
-    #https://github.com/actions/upload-artifact
+
     - uses: actions/upload-artifact@v6
       with:
         name: Mapping files
         path: app/build/outputs/mapping/**/mapping.txt
         if-no-files-found: ignore
+
     - uses: actions/upload-artifact@v6
       with:
         name: Native debug symbols
         path: app/build/outputs/native-debug-symbols/**/native-debug-symbols.zip
         if-no-files-found: ignore
+
     - uses: actions/upload-artifact@v6
       with:
         name: APK files
