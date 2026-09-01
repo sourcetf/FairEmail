@@ -59,7 +59,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ActivityBilling extends ActivityBase implements PurchasingListener, FragmentManager.OnBackStackChangedListener {
-    private boolean standalone = false;
+    private boolean standalone = true;
     private List<IBillingListener> listeners = new ArrayList<>();
 
     static final String ACTION_PURCHASE = BuildConfig.APPLICATION_ID + ".ACTION_PURCHASE";
